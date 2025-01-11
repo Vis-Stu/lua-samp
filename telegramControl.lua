@@ -1,5 +1,5 @@
 script_name("telegramControl")
-script_version("1.0.0")
+script_version("1.0.1")
 
 local JsonStatus, Json = pcall(require, 'carbjsonconfig');
 assert(JsonStatus, '[TGC] carbJsonConfg lib not found');
@@ -335,6 +335,8 @@ local newFrame = imgui.OnFrame(
                     imgui.Checkbox(u8'Бесконечный бег', infRun)
                     imgui.SetCursorPosX(10)
                     imgui.Checkbox(u8'Бесконечный двигатель', nofuel)
+                    imgui.SetCursorPosX(10)
+		    imgui.Checkbox(u8'лох', nofuel)
                     
                 end,
 
