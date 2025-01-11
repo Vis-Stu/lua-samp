@@ -153,7 +153,7 @@ local menuItemsData = {
 
 local menuButtons = {
     Buttons = {
-        {name=u8('Крутой'), nil, i = 1}
+        {name=('Крутой'), nil, i = 1}
     }
 }
 
@@ -235,19 +235,19 @@ function main()
         for _, v in pairs(getAllObjects()) do
             if semena[0] then
                 if getObjectModel(v) == 859 then
-                    renderObjId(v, u8'Семена', pX, pY, pZ)
+                    renderObjId(v, 'Семена', pX, pY, pZ)
                 end
             end
 
             if gifts[0] then
                 if getObjectModel(v) >= 19054 and getObjectModel(v) <= 19058 then
-                    renderObjId(v, u8'Подарок', pX, pY, pZ)
+                    renderObjId(v, 'Подарок', pX, pY, pZ)
                 end
             end
                 
             if klad[0] then
                 if getObjectModel(v) == 1271 then
-                    renderObjId(v, u8'Клад', pX, pY, pZ)
+                    renderObjId(v, 'Клад', pX, pY, pZ)
                 end
             end
         end
@@ -258,23 +258,23 @@ function main()
                 if narko[0] then renderObjectsName(u8'Закладка', text, u8'Закладка', posX, posY, posZ) end
                 
                 if mushroom[0] then
-                    if treeplo[0] then renderObjectsName(u8'Срезать гриб', text, u8'Гриб', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName('Срезать гриб', text, 'Гриб', posX, posY, posZ) end
                 end
                 if tree[0] then 
-                    if treeplo[0] then renderObjectsName(u8'Дерево высшего качества', text, u8'Дерево высшего качества', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName('Дерево высшего качества', text, 'Дерево высшего качества', posX, posY, posZ) end
                 end
                 if ripeTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName(u8'10 яблок', text, u8'10 яблок', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName(u8'10 слив', text, u8'10 слив', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName(u8'10 кокосов', text, u8'10 кокосов', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName('10 яблок', text, '10 яблок', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName('10 слив', text, '10 слив', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName('10 кокосов', text, '10 кокосов', posX, posY, posZ) end
                     end
                 end
                 if allTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName(u8'Яблочное дерево', text, u8'Яблоко', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName(u8'Сливовое дерево', text, u8'Сливы', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName(u8'Кокосовое дерево', text, u8'Кокосы', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName('Яблочное дерево', text, 'Яблоко', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName('Сливовое дерево', text, 'Сливы', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName('Кокосовое дерево', text, 'Кокосы', posX, posY, posZ) end
                     end
                 end
                 if gravityGang[0] then
