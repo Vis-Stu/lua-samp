@@ -371,40 +371,40 @@ local newFrame = imgui.OnFrame(
             switch(menuItemsData.currentPage) {
                 [1] = function() -- Уведомления
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Закладки', narko)
+                    imgui.Checkbox('Закладки', narko)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Семена', semena)
+                    imgui.Checkbox('Семена', semena)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Подарки', gifts)
+                    imgui.Checkbox('Подарки', gifts)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Клад', klad)
+                    imgui.Checkbox('Клад', klad)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Деревья', treeplo) imgui.SameLine()
-                    if imgui.Button(u8'Д', imgui.ImVec2(20, 25)) then
+                    imgui.Checkbox('Деревья', treeplo) imgui.SameLine()
+                    if imgui.Button('Д', imgui.ImVec2(20, 25)) then
                         treeplod[0] = not treeplod[0]
                     end
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Граффити банд', gravityGang) imgui.SameLine()
-                    if imgui.Button(u8'Г', imgui.ImVec2(20, 25)) then
+                    imgui.Checkbox('Граффити банд', gravityGang) imgui.SameLine()
+                    if imgui.Button('Г', imgui.ImVec2(20, 25)) then
                         gravGang[0] = not gravGang[0]
                     end
                 end,
                 
                 [2] = function() -- Выбор действия
-                    imgui.Text(u8'В разработке')
+                    imgui.Text('В разработке')
                 end,
 
                 [3] = function() -- Настройки
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Оверлей', overlay)
+                    imgui.Checkbox('Оверлей', overlay)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Координаты игрока', coor)
+                    imgui.Checkbox('Координаты игрока', coor)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Чекер админов', admcheker)
+                    imgui.Checkbox('Чекер админов', admcheker)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Бесконечный бег', infRun)
+                    imgui.Checkbox('Бесконечный бег', infRun)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Бесконечный двигатель', nofuel)
+                    imgui.Checkbox('Бесконечный двигатель', nofuel)
                     
                 end,
 
