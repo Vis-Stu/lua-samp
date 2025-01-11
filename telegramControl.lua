@@ -357,7 +357,7 @@ local newFrame = imgui.OnFrame(
             imgui.SetCursorPosY(120)
             Menu(menuItemsData.menuButtons, menuItemsData.currentPage)
             imgui.SetCursorPosY(370)
-            imgui.CenterText(u8"Версия: " .. thisScript().version)
+            imgui.CenterText("Версия: " .. thisScript().version)
             imgui.SetCursorPosX(20)
             imgui.EndChild()
         end
