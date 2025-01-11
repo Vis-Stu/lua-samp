@@ -8,7 +8,7 @@ local encoding = require 'encoding'
 encoding.default = 'CP1251'
 u8 = encoding.UTF8
 
-
+local font = renderCreateFont('Tahoma', 10, 4)
 require('lib.strings')
 local imgui = require('mimgui')
 local sampEvents = require("samp.events")
@@ -52,12 +52,80 @@ local cotton = imgui.new.bool()
 local admcheker = imgui.new.bool()
 local infRun = imgui.new.bool()
 local nofuel = imgui.new.bool()
-
+local dlstatus = require "moonloader".download_status
 -- window
 local treeplod = imgui.new.bool()
 local overlay = imgui.new.bool()
 local gravGang = imgui.new.bool()
 --local actionItemsList = {"executeCommand", "executeCode"}
+
+if enable_autoupdate then
+    local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Загружено %d из %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Загрузка обновления завершена.')sampAddChatMessage(b..'Обновление завершено!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'Обновление прошло неудачно. Запускаю устаревшую версию..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': Обновление не требуется.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Смиритесь или проверьте самостоятельно на '..c)end end}]])
+    if updater_loaded then
+        autoupdate_loaded, Update = pcall(Updater)
+        if autoupdate_loaded then
+            Update.json_url = "https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json" .. tostring(os.clock())
+            Update.prefix = "[" .. string.upper(thisScript().name) .. "]: "
+            Update.url = "https://github.com/Vis-Stu/lua-samp/tree/main"
+        end
+    end
+end
+
+function autoupdate(json_url, prefix, url)
+    local dlstatus = require('moonloader').download_status
+    local json = getWorkingDirectory() .. '\\'..thisScript().name..'-version.json'
+    if doesFileExist(json) then os.remove(json) end
+    downloadUrlToFile(json_url, json,
+      function(id, status, p1, p2)
+        if status == dlstatus.STATUSEX_ENDDOWNLOAD then
+          if doesFileExist(json) then
+            local f = io.open(json, 'r')
+            if f then
+              local info = decodeJson(f:read('*a'))
+              updatelink = info.updateurl
+              updateversion = info.latest
+              f:close()
+              os.remove(json)
+              if updateversion ~= thisScript().version then
+                lua_thread.create(function(prefix)
+                  local dlstatus = require('moonloader').download_status
+                  local color = -1
+                  sampAddChatMessage((prefix..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion), color)
+                  wait(250)
+                  downloadUrlToFile(updatelink, thisScript().path,
+                    function(id3, status1, p13, p23)
+                      if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
+                        print(string.format('Загружено %d из %d.', p13, p23))
+                      elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
+                        print('Загрузка обновления завершена.')
+                        sampAddChatMessage((prefix..'Обновление завершено!'), color)
+                        goupdatestatus = true
+                        lua_thread.create(function() wait(500) thisScript():reload() end)
+                      end
+                      if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+                        if goupdatestatus == nil then
+                          sampAddChatMessage((prefix..'Обновление прошло неудачно. Запускаю устаревшую версию..'), color)
+                          update = false
+                        end
+                      end
+                    end
+                  )
+                  end, prefix
+                )
+              else
+                update = false
+                print('v'..thisScript().version..': Обновление не требуется.')
+              end
+            end
+          else
+            print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..url)
+            update = false
+          end
+        end
+      end
+    )
+    while update ~= false do wait(100) end
+  end
 
 local imguiInferface = {
     renderWindow = imgui.new.bool(false),
@@ -150,8 +218,10 @@ end
     end
 end
 
+
 function main()
     while not isSampAvailable() do wait(0) end
+    --autoupdate("https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json", '['..string.upper(thisScript().name)..']: ', "http://vk.com/qrlk.mods")
     
     sampRegisterChatCommand('telec', function()
         imguiInferface.renderWindow[0] = not imguiInferface.renderWindow[0]
@@ -165,19 +235,19 @@ function main()
         for _, v in pairs(getAllObjects()) do
             if semena[0] then
                 if getObjectModel(v) == 859 then
-                    renderObjId(v, 'Семена', pX, pY, pZ)
+                    renderObjId(v, u8'Семена', pX, pY, pZ)
                 end
             end
 
             if gifts[0] then
                 if getObjectModel(v) >= 19054 and getObjectModel(v) <= 19058 then
-                    renderObjId(v, 'Подарок', pX, pY, pZ)
+                    renderObjId(v, u8'Подарок', pX, pY, pZ)
                 end
             end
                 
             if klad[0] then
                 if getObjectModel(v) == 1271 then
-                    renderObjId(v, 'Клад', pX, pY, pZ)
+                    renderObjId(v, u8'Клад', pX, pY, pZ)
                 end
             end
         end
@@ -185,26 +255,26 @@ function main()
         for id = 0, 2048 do
             if sampIs3dTextDefined(id) then
                 local text, color, posX, posY, posZ, distance, ignoreWalls, player, vehicle = sampGet3dTextInfoById(id)
-                if narko[0] then renderObjectsName('Закладка', text, 'Закладка', posX, posY, posZ) end
+                if narko[0] then renderObjectsName(u8'Закладка', text, u8'Закладка', posX, posY, posZ) end
                 
                 if mushroom[0] then
-                    if treeplo[0] then renderObjectsName('Срезать гриб', text, 'Гриб', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName(u8'Срезать гриб', text, u8'Гриб', posX, posY, posZ) end
                 end
                 if tree[0] then 
-                    if treeplo[0] then renderObjectsName('Дерево высшего качества', text, 'Дерево высшего качества', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName(u8'Дерево высшего качества', text, u8'Дерево высшего качества', posX, posY, posZ) end
                 end
                 if ripeTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName('10 яблок', text, '10 яблок', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName('10 слив', text, '10 слив', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName('10 кокосов', text, '10 кокосов', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName(u8'10 яблок', text, u8'10 яблок', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName(u8'10 слив', text, u8'10 слив', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName(u8'10 кокосов', text, u8'10 кокосов', posX, posY, posZ) end
                     end
                 end
                 if allTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName('Яблочное дерево', text, 'Яблоко', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName('Сливовое дерево', text, 'Сливы', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName('Кокосовое дерево', text, 'Кокосы', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName(u8'Яблочное дерево', text, u8'Яблоко', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName(u8'Сливовое дерево', text, u8'Сливы', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName(u8'Кокосовое дерево', text, u8'Кокосы', posX, posY, posZ) end
                     end
                 end
                 if gravityGang[0] then
@@ -335,8 +405,6 @@ local newFrame = imgui.OnFrame(
                     imgui.Checkbox(u8'Бесконечный бег', infRun)
                     imgui.SetCursorPosX(10)
                     imgui.Checkbox(u8'Бесконечный двигатель', nofuel)
-                    imgui.SetCursorPosX(10)
-		    imgui.Checkbox(u8'лох', nofuel)
                     
                 end,
 
