@@ -144,10 +144,10 @@ local menuItemsData = {
     currentPage = 1,
 
     menuButtons = {
-        {name=u8('Рендер'), icon=faicons('MEMO_CIRCLE_INFO'), i = 1},
-        {name=u8('Хелперы'), icon=faicons('MESSAGE_CODE'), i = 2},
-        {name=u8('Другое'), icon=faicons('GEARS'), i = 3},
-        {name=u8('Закрыть'), icon=faicons('TERMINAL'), i = 4},
+        {name=('Рендер'), icon=faicons('MEMO_CIRCLE_INFO'), i = 1},
+        {name=('Хелперы'), icon=faicons('MESSAGE_CODE'), i = 2},
+        {name=('Другое'), icon=faicons('GEARS'), i = 3},
+        {name=('Закрыть'), icon=faicons('TERMINAL'), i = 4},
     }
 }
 
