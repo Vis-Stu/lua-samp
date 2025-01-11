@@ -6,7 +6,8 @@ assert(JsonStatus, '[TGC] carbJsonConfg lib not found');
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
-u8 = encoding.UTF8
+local u8 = encoding.UTF8
+local function recode(u8) return encoding.UTF8:decode(u8) end
 
 local font = renderCreateFont('Tahoma', 10, 4)
 require('lib.strings')
