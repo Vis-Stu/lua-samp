@@ -1,4 +1,4 @@
-script_name("telegramControl")
+script_name("zxc")
 script_version("1.0.0")
 
 local JsonStatus, Json = pcall(require, 'carbjsonconfig');
