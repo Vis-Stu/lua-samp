@@ -401,7 +401,7 @@ local newFrame = imgui.OnFrame(
             switch(menuItemsData.currentPage) {
                 [1] = function() -- Уведомления
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox(u8'Закладки', narko)
+                    imgui.Checkbox('Закладки', narko)
                     imgui.SetCursorPosX(10)
                     imgui.Checkbox(u8'Семена', semena)
                     imgui.SetCursorPosX(10)
