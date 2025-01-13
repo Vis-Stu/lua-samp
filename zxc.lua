@@ -1,5 +1,5 @@
 script_name("zxc")
-script_version("0.0.9")
+script_version("1.0.0")
 
 local JsonStatus, Json = pcall(require, 'carbjsonconfig');
 assert(JsonStatus, '[TGC] carbJsonConfg lib not found');
