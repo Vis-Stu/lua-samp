@@ -1,5 +1,5 @@
 script_name("telegramControl")
-script_version("1.1")
+script_version("1.0.0")
 
 local JsonStatus, Json = pcall(require, 'carbjsonconfig');
 assert(JsonStatus, '[TGC] carbJsonConfg lib not found');
