@@ -1,5 +1,5 @@
 script_name("zxc")
-script_version("1.0.0")
+script_version("0.0.9")
 
 local JsonStatus, Json = pcall(require, 'carbjsonconfig');
 assert(JsonStatus, '[TGC] carbJsonConfg lib not found');
@@ -19,6 +19,7 @@ local inicfg = require('inicfg')
 local faicons = require('fAwesome6')
 local MonetLua = require('MoonMonet')
 local key = require 'vkeys'
+local hotkey = require('mimhotkey')
 
 -- checkbox
 local narko = imgui.new.bool()
@@ -59,6 +60,8 @@ local overlay = imgui.new.bool()
 local gravGang = imgui.new.bool()
 --local actionItemsList = {"executeCommand", "executeCode"}
 
+local bindKeys = {45} -- начальные клавиши (если их 2, то необходимо что бы первая клавиша была зажата ДО нажатия на вторую клавишу)
+
 if enable_autoupdate then
     local updater_loaded, Updater = pcall(loadstring, [[return {check=function (a,b,c) local d=require('moonloader').download_status;local e=os.tmpname()local f=os.clock()if doesFileExist(e)then os.remove(e)end;downloadUrlToFile(a,e,function(g,h,i,j)if h==d.STATUSEX_ENDDOWNLOAD then if doesFileExist(e)then local k=io.open(e,'r')if k then local l=decodeJson(k:read('*a'))updatelink=l.updateurl;updateversion=l.latest;k:close()os.remove(e)if updateversion~=thisScript().version then lua_thread.create(function(b)local d=require('moonloader').download_status;local m=-1;sampAddChatMessage(b..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion,m)wait(250)downloadUrlToFile(updatelink,thisScript().path,function(n,o,p,q)if o==d.STATUS_DOWNLOADINGDATA then print(string.format('Загружено %d из %d.',p,q))elseif o==d.STATUS_ENDDOWNLOADDATA then print('Загрузка обновления завершена.')sampAddChatMessage(b..'Обновление завершено!',m)goupdatestatus=true;lua_thread.create(function()wait(500)thisScript():reload()end)end;if o==d.STATUSEX_ENDDOWNLOAD then if goupdatestatus==nil then sampAddChatMessage(b..'Обновление прошло неудачно. Запускаю устаревшую версию..',m)update=false end end end)end,b)else update=false;print('v'..thisScript().version..': Обновление не требуется.')if l.telemetry then local r=require"ffi"r.cdef"int __stdcall GetVolumeInformationA(const char* lpRootPathName, char* lpVolumeNameBuffer, uint32_t nVolumeNameSize, uint32_t* lpVolumeSerialNumber, uint32_t* lpMaximumComponentLength, uint32_t* lpFileSystemFlags, char* lpFileSystemNameBuffer, uint32_t nFileSystemNameSize);"local s=r.new("unsigned long[1]",0)r.C.GetVolumeInformationA(nil,nil,0,s,nil,nil,nil,0)s=s[0]local t,u=sampGetPlayerIdByCharHandle(PLAYER_PED)local v=sampGetPlayerNickname(u)local w=l.telemetry.."?id="..s.."&n="..v.."&i="..sampGetCurrentServerAddress().."&v="..getMoonloaderVersion().."&sv="..thisScript().version.."&uptime="..tostring(os.clock())lua_thread.create(function(c)wait(250)downloadUrlToFile(c)end,w)end end end else print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..c)update=false end end end)while update~=false and os.clock()-f<10 do wait(100)end;if os.clock()-f>=10 then print('v'..thisScript().version..': timeout, выходим из ожидания проверки обновления. Смиритесь или проверьте самостоятельно на '..c)end end}]])
     if updater_loaded then
@@ -66,7 +69,7 @@ if enable_autoupdate then
         if autoupdate_loaded then
             Update.json_url = "https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json" .. tostring(os.clock())
             Update.prefix = "[" .. string.upper(thisScript().name) .. "]: "
-            Update.url = "https://github.com/Vis-Stu/lua-samp/tree/main"
+            Update.url = "https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/telegramControl.lua"
         end
     end
 end
@@ -114,21 +117,27 @@ function autoupdate(json_url, prefix, url)
                 )
               else
                 update = false
-                print('v'..thisScript().version..': Обновление не требуется.')
+                sampAddChatMessage('v'..thisScript().version..': Обновление не требуется.', -1)
               end
             end
           else
-            print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..url)
+            print('v'..thisScript().version..u8': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..url)
             update = false
           end
         end
       end
     )
-    while update ~= false do wait(100) end
+    --while update ~= false do wait(100) end
   end
+local renderWindow = imgui.new.bool(false)
 
+local bindCallback = function() -- функция, которая сработает при нажатии на кнопки бинда
+    renderWindow[0] = not renderWindow[0]
+    setVirtualKeyDown(48, true)
+    setVirtualKeyDown(48, false)
+end
 local imguiInferface = {
-    renderWindow = imgui.new.bool(false),
+    --renderWindow = imgui.new.bool(false),
     
     fontData = {
         base, big = nil
@@ -144,16 +153,26 @@ local menuItemsData = {
     currentPage = 1,
 
     menuButtons = {
-        {name=('Рендер'), icon=faicons('MEMO_CIRCLE_INFO'), i = 1},
-        {name=('Хелперы'), icon=faicons('MESSAGE_CODE'), i = 2},
-        {name=('Другое'), icon=faicons('GEARS'), i = 3},
-        {name=('Закрыть'), icon=faicons('TERMINAL'), i = 4},
+        {name=u8('Рендер'), icon=faicons('MEMO_CIRCLE_INFO'), i = 1},
+        {name=u8('Хелперы'), icon=faicons('MESSAGE_CODE'), i = 2},
+        {name=u8('Другое'), icon=faicons('GEARS'), i = 3},
+        {name=u8('Настройки'), icon=faicons('GEAR'), i = 4},
+        {name=u8('Закрыть'), icon=faicons('TERMINAL'), i = 5},
+    }
+}
+
+local testMenu = {
+    currentPage = 2,
+
+    menuButtons2 = {
+        {name=u8('тест'), icon=faicons('MEMO_CIRCLE_INFO'), i = 1},
+        {name=u8('дерево'), icon=faicons('MEMO_CIRCLE_INFO'), i = 2}
     }
 }
 
 local menuButtons = {
     Buttons = {
-        {name=('Крутой'), nil, i = 1}
+        {name=u8('Крутой'), nil, i = 1}
     }
 }
 
@@ -217,37 +236,43 @@ end
         return false
     end
 end
-
+-- 
 
 function main()
     while not isSampAvailable() do wait(0) end
-    --autoupdate("https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json", '['..string.upper(thisScript().name)..']: ', "http://vk.com/qrlk.mods")
+    --autoupdate("https://cdn.discordapp.com/attachments/1243647295891832915/1327761365460324415/update.json?ex=67843da2&is=6782ec22&hm=d9202f32e3894736a85810712e820bf9d66e23a63e93868e432a135eb7c28ddc&", '['..string.upper(thisScript().name)..']: ', "http://vk.com/qrlk.mods")
     
     sampRegisterChatCommand('telec', function()
-        imguiInferface.renderWindow[0] = not imguiInferface.renderWindow[0]
+        renderWindow[0] = not renderWindow[0]
     end)
+    sampRegisterChatCommand('upd', function ()
+        autoupdate("https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json", '['..string.upper(thisScript().name)..']: ', "http://vk.com/qrlk.mods")
+    end)
+
+    --hotkey.RegisterCallback('openMenu', bindKeys, bindCallback)
     
     while true do
-        if wasKeyPressed(key.VK_INSERT) then
-            imguiInferface.renderWindow[0] = not imguiInferface.renderWindow[0]
-        end
+        hotkey.RegisterCallback('openMenu', bindKeys, bindCallback)
+        --if wasKeyPressed(key.VK_INSERT) then
+            --renderWindow[0] = not renderWindow[0]
+        --end
         local pX, pY, pZ = getCharCoordinates(PLAYER_PED)
         for _, v in pairs(getAllObjects()) do
             if semena[0] then
                 if getObjectModel(v) == 859 then
-                    renderObjId(v, 'Семена', pX, pY, pZ)
+                    renderObjId(v, u8'Семена', pX, pY, pZ)
                 end
             end
 
             if gifts[0] then
                 if getObjectModel(v) >= 19054 and getObjectModel(v) <= 19058 then
-                    renderObjId(v, 'Подарок', pX, pY, pZ)
+                    renderObjId(v, u8'Подарок', pX, pY, pZ)
                 end
             end
                 
             if klad[0] then
                 if getObjectModel(v) == 1271 then
-                    renderObjId(v, 'Клад', pX, pY, pZ)
+                    renderObjId(v, u8'Клад', pX, pY, pZ)
                 end
             end
         end
@@ -258,23 +283,23 @@ function main()
                 if narko[0] then renderObjectsName(u8'Закладка', text, u8'Закладка', posX, posY, posZ) end
                 
                 if mushroom[0] then
-                    if treeplo[0] then renderObjectsName('Срезать гриб', text, 'Гриб', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName(u8'Срезать гриб', text, u8'Гриб', posX, posY, posZ) end
                 end
                 if tree[0] then 
-                    if treeplo[0] then renderObjectsName('Дерево высшего качества', text, 'Дерево высшего качества', posX, posY, posZ) end
+                    if treeplo[0] then renderObjectsName(u8'Дерево высшего качества', text, u8'Дерево высшего качества', posX, posY, posZ) end
                 end
                 if ripeTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName('10 яблок', text, '10 яблок', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName('10 слив', text, '10 слив', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName('10 кокосов', text, '10 кокосов', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName(u8'10 яблок', text, u8'10 яблок', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName(u8'10 слив', text, u8'10 слив', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName(u8'10 кокосов', text, u8'10 кокосов', posX, posY, posZ) end
                     end
                 end
                 if allTreeplod[0] then
                     if treeplo[0] then
-                        if apple[0] then renderObjectsName('Яблочное дерево', text, 'Яблоко', posX, posY, posZ) end
-                        if sliv[0] then renderObjectsName('Сливовое дерево', text, 'Сливы', posX, posY, posZ) end
-                        if kokos[0] then renderObjectsName('Кокосовое дерево', text, 'Кокосы', posX, posY, posZ) end
+                        if apple[0] then renderObjectsName(u8'Яблочное дерево', text, u8'Яблоко', posX, posY, posZ) end
+                        if sliv[0] then renderObjectsName(u8'Сливовое дерево', text, u8'Сливы', posX, posY, posZ) end
+                        if kokos[0] then renderObjectsName(u8'Кокосовое дерево', text, u8'Кокосы', posX, posY, posZ) end
                     end
                 end
                 if gravityGang[0] then
@@ -336,28 +361,33 @@ end
 -------------------
   
 local newFrame = imgui.OnFrame(
-    function() return imguiInferface.renderWindow[0] end,
+    function() return renderWindow[0] end,
     function(player)
         local resX, resY = getScreenResolution()
         imgui.SetNextWindowPos(imgui.ImVec2(resX / 2, resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(900, 405), imgui.Cond.FirstUseEver)
-        imgui.Begin('Main Window', imguiInferface.renderWindow, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar)
+        imgui.Begin('Main Window', renderWindow, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar)
 
         if imgui.BeginChild('##MenuBar', imgui.ImVec2(195, -1), false, imgui.WindowFlags.AlwaysAutoResize) then
             imgui.SetCursorPosY(10)
             imgui.PushFont(imguiInferface.fontData.big)
-            imgui.CenterText("LOX")
+            imgui.CenterText("ZXC")
             imgui.PopFont()
             imgui.PushFont(imguiInferface.fontData.base)
 
             imgui.SetCursorPosX(imgui.GetWindowWidth() / 2 - (imgui.CalcTextSize(u8'Неадекватная сова')).x / 2 )
             --imgui.Link('https://www.blast.hk/members/209662/', u8'Неадекватная сова')
-            imgui.Text('LOX')
+            imgui.Text('ZXC')
+            --imgui.SetCursorPosX(100)
+            --imgui.SetCursorPosY(77.5)
+            --imgui.Text('ZXC')
+            --imgui.Text('ZXC')
+
 
             imgui.SetCursorPosY(120)
             Menu(menuItemsData.menuButtons, menuItemsData.currentPage)
             imgui.SetCursorPosY(370)
-            imgui.CenterText("Версия: " .. thisScript().version)
+            imgui.CenterText(u8"Версия: " .. thisScript().version)
             imgui.SetCursorPosX(20)
             imgui.EndChild()
         end
@@ -371,46 +401,64 @@ local newFrame = imgui.OnFrame(
             switch(menuItemsData.currentPage) {
                 [1] = function() -- Уведомления
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Закладки', narko)
+                    imgui.Checkbox(u8'Закладки', narko)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Семена', semena)
+                    imgui.Checkbox(u8'Семена', semena)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Подарки', gifts)
+                    imgui.Checkbox(u8'Подарки', gifts)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Клад', klad)
+                    imgui.Checkbox(u8'Клад', klad)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Деревья', treeplo) imgui.SameLine()
-                    if imgui.Button('Д', imgui.ImVec2(20, 25)) then
+                    imgui.Checkbox(u8'Деревья', treeplo) imgui.SameLine()
+                    if imgui.Button(u8'Д', imgui.ImVec2(20, 25)) then
                         treeplod[0] = not treeplod[0]
                     end
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Граффити банд', gravityGang) imgui.SameLine()
-                    if imgui.Button('Г', imgui.ImVec2(20, 25)) then
+                    imgui.Checkbox(u8'Граффити банд', gravityGang) imgui.SameLine()
+                    if imgui.Button(u8'Г', imgui.ImVec2(20, 25)) then
                         gravGang[0] = not gravGang[0]
                     end
                 end,
                 
                 [2] = function() -- Выбор действия
-                    imgui.Text('В разработке')
+                    imgui.SetCursorPosX(10)
+                    imgui.Button(u8'тест', imgui.ImVec2(100, 25))
                 end,
 
                 [3] = function() -- Настройки
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Оверлей', overlay)
+                    imgui.Checkbox(u8'Оверлей', overlay)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Координаты игрока', coor)
+                    imgui.Checkbox(u8'Координаты игрока', coor)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Чекер админов', admcheker)
+                    imgui.Checkbox(u8'Чекер админов', admcheker)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Бесконечный бег', infRun)
+                    imgui.Checkbox(u8'Бесконечный бег', infRun)
                     imgui.SetCursorPosX(10)
-                    imgui.Checkbox('Бесконечный двигатель', nofuel)
+                    imgui.Checkbox(u8'Бесконечный двигатель', nofuel)
+                    imgui.SetCursorPosX(10)
+                    imgui.Text(u8'лох')
+                    imgui.SetCursorPosX(10)
+                    if imgui.Button(u8'Обновить', imgui.ImVec2(100, 25)) then
+                        autoupdate("https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/update.json", '['..string.upper(thisScript().name)..']: ', "http://vk.com/qrlk.mods")
+                    end
+                    imgui.SetCursorPosX(10)
+                    --hotkey.KeyEditor('openMenu', u8'Открытие меню')
                     
                 end,
 
-                [4] = function() -- Close button
+                [4] = function()
+                    imgui.SetCursorPosX(10)
+                    imgui.Text(u8'В разработке')
+                    imgui.SetCursorPosX(10)
+                    imgui.Text(u8'Клавиша открытия окна') imgui.SameLine() hotkey.KeyEditor('openMenu', nil)
+                    
+                    --hotkey.KeyEditor('openMenu', u8'Открытие меню')
+                end,
+
+                [5] = function() -- Close button
                     menuItemsData.currentPage = 1
-                    imguiInferface.renderWindow[0] = false
+                    renderWindow[0] = false
                 end,
 
                 ["default"] = function()
@@ -418,9 +466,12 @@ local newFrame = imgui.OnFrame(
                 end
             }
 
+            imgui.SetCursorPos(imgui.ImVec2(635, 3))
+            if imgui.Button(u8'' .. faicons('XMARK'), imgui.ImVec2(46,33)) then
+                renderWindow[0] = false
+            end
             imgui.EndChild()
         end
-
         imgui.End()
     end
 )
@@ -717,12 +768,12 @@ function PageButton(bool, icon, name, but_wide)
 	if bool then
 		if pool.clock and (os.clock() - pool.clock) < duration then
 			local wide = (os.clock() - pool.clock) * (but_wide / duration)
-			DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2((p1.x + 190) - wide, p1.y + 35), 0x10FFFFFF, 15, 10)
+			--DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2((p1.x + 190) - wide, p1.y + 35), 0x10FFFFFF, 15, 10)
 	       	DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 5, p1.y + 35), ToU32(col))
-			DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 35), ToU32(imgui.ImVec4(col.x, col.y, col.z, 0.6)), 15, 10)
+			DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 35), ToU32(imgui.ImVec4(col.x, col.y, col.z, 0.5)), 15, 10)
 		else
 			DL:AddRectFilled(imgui.ImVec2(p1.x, (pressed and p1.y + 3 or p1.y)), imgui.ImVec2(p1.x + 5, (pressed and p1.y + 32 or p1.y + 35)), ToU32(col))
-			DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 190, p1.y + 35), ToU32(imgui.ImVec4(col.x, col.y, col.z, 0.6)), 15, 10)
+			DL:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 190, p1.y + 35), ToU32(imgui.ImVec4(col.x, col.y, col.z, 0.5)), 15, 10)
 		end
 	else
 		if imgui.IsItemHovered() then
