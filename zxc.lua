@@ -371,7 +371,7 @@ local newFrame = imgui.OnFrame(
         if imgui.BeginChild('##MenuBar', imgui.ImVec2(195, -1), false, imgui.WindowFlags.AlwaysAutoResize) then
             imgui.SetCursorPosY(10)
             imgui.PushFont(imguiInferface.fontData.big)
-            imgui.CenterText("ZXC")
+            imgui.CenterText("GITHUB")
             imgui.PopFont()
             imgui.PushFont(imguiInferface.fontData.base)
 
