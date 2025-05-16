@@ -1,2 +1,4 @@
-[info]
-versio=1.0.1
+{
+  "latest": "0.0.5,
+  "updateurl": "https://raw.githubusercontent.com/Vis-Stu/lua-samp/refs/heads/main/!mimgui.lua"
+}
